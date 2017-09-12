@@ -7,37 +7,99 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController {
 // put outlets here 
-var index = 0
+
     
+    
+    @IBOutlet weak var awesomeImage: UIImageView!
     
     @IBOutlet weak var messageLabel: UILabel!
+    
+    @IBOutlet weak var soundSwitch: UISwitch!
+    // MARK: - Properties
+    var awesomePlayer = AVAudioPlayer()
+    var index = -1
+    var imageNumber = -1
+    var soundNumber = -1
+    let numberOfImages = 10
+    let numberOfSounds = 4
     override func viewDidLoad() {
         super.viewDidLoad()
         print("*** viewDidLoad has exexuted", Date())
        
-      
+  
         
     }
-
+    // MARK: - My Own Functions
+    
+    func playSound(soundName: String, audioPlayer: inout AVAudioPlayer) {        // can we load the file soundName?
+        if let sound = NSDataAsset(name: soundName){
+            // check if sound.data is a sound file
+            do {
+                try audioPlayer = AVAudioPlayer(data:sound.data)
+                audioPlayer.play()
+            } catch {
+                // if sound.data is not a valid audio file
+                print("ERROR: data in \(soundName) couldn't be played as a sound.")
+            }
+        } else{
+            //if reading in the NSDataAsset didnt load, tell the user/ report error
+            print("ERROR: file \(soundName) didn't load")
+        }
+        
+    }
  
+    func nonRepeatingRandom(lastNumber: Int, maxValue: Int)-> Int {
+        
+        var newIndex = -1
+            repeat {
+                newIndex = Int(arc4random_uniform(UInt32(maxValue)))
+            } while lastNumber == newIndex
+  return newIndex
+            
+        }
+        
+    //MARK: - Actions
+    //show message
+    @IBAction func soundSwitchedPressed(_ sender: UISwitch) {
+        if !soundSwitch.isOn && soundNumber != -1 {
 
+            //stop playing
+                awesomePlayer.stop()
+        }
+    }
+    
+    
     @IBAction func messageButtonPressed(_ sender: UIButton) {
      let messages = ["You are fantastic",
                      "You are great!" ,
                      "You are amazing",
                      "When the genius bar needs help, they call you!",
                      "You Brighten My Day!"]
-      var newIndex = -1
-        repeat {
-            newIndex = Int(arc4random_uniform(UInt32(messages.count)))
-        } while index == newIndex
         
-       index = newIndex
-        
+       index = nonRepeatingRandom(lastNumber: index, maxValue: messages.count)
         messageLabel.text = messages[index]
+        
+        //show image
+        awesomeImage.isHidden = false
+        
+        imageNumber = nonRepeatingRandom(lastNumber: imageNumber, maxValue: numberOfImages)
+        awesomeImage.image = UIImage(named: "image" + String(imageNumber))
+        
+        if soundSwitch.isOn {
+            //get random number to use in soundName file
+            
+            soundNumber = nonRepeatingRandom(lastNumber: soundNumber, maxValue: numberOfSounds)
+            
+            //play sound
+            let    soundName = "sound\(soundNumber)"
+            playSound(soundName: soundName, audioPlayer: &awesomePlayer)
+        }
+   
+        
         
    //     var randomIndex = Int(arc4random_uniform(UInt32(messages.count)))
    //     messageLabel.text = messages[randomIndex]
